@@ -7,8 +7,11 @@
 
 
 #include "stm32f407xx.h"
+
 #define HIGH	1
-#define BTN_PRESSED	HIGH
+#define LOW		0
+#define BTN_PRESSED	LOW
+
 void delay(void)
 {
 	for(uint32_t i=0;i<500000/2;i++);
@@ -17,9 +20,10 @@ void delay(void)
 int main(void)
 {
 	GPIO_Handle_t GpioLed, GPIOBtn;
+
 	//this is led gpio configuration
 	GpioLed.pGPIOx = GPIOA;
-	GpioLed.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_5;
+	GpioLed.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_8;
 	GpioLed.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
 	GpioLed.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_FAST;
 	GpioLed.GPIO_PinConfig.GPIO_PinOpType = GPIO_OP_TYPE_PP;
@@ -38,14 +42,22 @@ int main(void)
 
 	GPIO_PeriClockControl(GPIOB,ENABLE);
 	GPIO_Init(&GPIOBtn);
+	uint8_t btn_prev_state = HIGH;
+
 	while(1)
 	{
-		if(GPIO_ReadFromInputPin(GPIOB, GPIO_PIN_NO_12) == BTN_PRESSED)
-		{
-		delay();
-		GPIO_ToggleOutputPin(GPIOA,GPIO_PIN_NO_5);
-		}
+	    uint8_t btn_curr_state = GPIO_ReadFromInputPin(GPIOB, GPIO_PIN_NO_12);
+
+	    // Butona yeni basıldıysa
+	    if(btn_curr_state == BTN_PRESSED && btn_prev_state == HIGH)
+	    {
+	        delay();  // debounce
+	        GPIO_ToggleOutputPin(GPIOA, GPIO_PIN_NO_8);
+	    }
+
+	    btn_prev_state = btn_curr_state;
 	}
+
 	return 0;
 
 }
