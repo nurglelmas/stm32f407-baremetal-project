@@ -9,4 +9,7 @@ build/
 *.elf
 *.map
 
+# MacOS system files
+.DS_Store
+
 
