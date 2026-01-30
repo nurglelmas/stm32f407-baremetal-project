@@ -45,6 +45,18 @@ In this project, the button press generates an **EXTI interrupt**, and the LED s
    - The EXTI interrupt is triggered
    - The pending bit is cleared
    - The LED is toggled inside the IRQ handler
+---
+
+## 🛠 Debug & Pointer Fix Notes
+
+During the lesson, I learned that incrementing a `uint32_t *` pointer multiplies the increment by 4 automatically.  
+Previously, we multiplied by 4 manually, causing incorrect register addressing.  
+This has been fixed in the GPIO driver code.
+
+- Use `NVIC_PR_BASE_ADDR` directly instead of manually adjusting the address.  
+- Ensure that EXTI IRQ handlers toggle the LED correctly.  
+
+These notes complement the previous explanation and demonstration video of the button-controlled LED using interrupts.
 
 ---
 
