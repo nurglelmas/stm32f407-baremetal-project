@@ -76,7 +76,11 @@ void GPIO_PeriClockControl(GPIO_RegDef_t *pGPIOx,uint8_t EnorDi)
 void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 {
 
-	uint32_t temp;//temp.register
+	uint32_t temp=0;//temp.register
+
+	//enabled the peripheral clock
+	GPIO_PeriClockControl(pGPIOHandle->pGPIOx, ENABLE);
+
 	//1. configure the mode of gpio pin
 
 	if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode <= GPIO_MODE_ANALOG)
@@ -139,6 +143,13 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 	if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode == GPIO_MODE_ALTFN)
 	{
 		//configure the alt function registers.
+
+		   uint8_t afr_index = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber / 8;
+		   uint8_t afr_pos   = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber % 8;
+		   pGPIOHandle->pGPIOx->AFR[afr_index] &= ~(0xF << (afr_pos * 4));
+		   pGPIOHandle->pGPIOx->AFR[afr_index] |= (pGPIOHandle->GPIO_PinConfig.GPIO_PinAltFunMode << (afr_pos * 4));
+
+
 	}
 }
 /********************************************************************************************
