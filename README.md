@@ -27,3 +27,22 @@ Each project includes **demo GIFs** for easy visualization of the functionality.
 
 ![SPI Application Demo](media/spi_application/spi_application.gif)
 
+---
+
+## SPI Slave STM32F103 Example
+
+A **register-level SPI slave example** using STM32F103C8T6.  
+This project demonstrates receiving data from a SPI master (e.g., STM32F407 or other) and handling it at the peripheral/register level.  
+
+### Connections
+
+![SPI Slave Connections](media/spi_slave_connections.jpeg)
+
+- SPI2 Pins:  
+  - PB12 → NSS  
+  - PB13 → SCLK  
+  - PB14 → MISO (not used in this example)  
+  - PB15 → MOSI  
+- Clock: 8 MHz  
+- Minimal register-level code, no HAL or LL used  
+
