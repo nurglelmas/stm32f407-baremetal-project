@@ -15,65 +15,95 @@
  *
  ******************************************************************************
  */
-
 #include "stm32f103xb.h"
+#include <string.h>
 
-#define BUFFER_SIZE 100
+#define MAX_LEN 100
 
-volatile uint8_t rxBuffer[BUFFER_SIZE];
-volatile uint8_t rxIndex = 0;
+uint8_t rxBuffer[MAX_LEN];
+uint8_t dataLength = 0;
 
-void SPI1_GPIO_Init(void) {
-    // PA5->SCK, PA6->MISO, PA7->MOSI, PA4->NSS
-    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN; // GPIOA clock enable
+void SPI1_GPIO_Init(void)
+{
+    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
 
-    // PA5 SCK input floating (slave)
-    GPIOA->CRL &= ~(0xF << (5*4));
-    GPIOA->CRL |=  (0x4 << (5*4));
+    // PA5 -> SCK input floating
+    GPIOA->CRL &= ~(0xF << 20);
+    GPIOA->CRL |=  (0x4 << 20);
 
-    // PA6 MISO output push-pull
-    GPIOA->CRL &= ~(0xF << (6*4));
-    GPIOA->CRL |=  (0x1 << (6*4)); // 10: Output 2 MHz push-pull
-    GPIOA->CRL |=  (0x2 << (6*4)); // Actually for 2MHz
+    // PA7 -> MOSI input floating
+    GPIOA->CRL &= ~(0xF << 28);
+    GPIOA->CRL |=  (0x4 << 28);
 
-    // PA7 MOSI input floating
-    GPIOA->CRL &= ~(0xF << (7*4));
-    GPIOA->CRL |=  (0x4 << (7*4));
+    // PA6 -> MISO AF push-pull
+    GPIOA->CRL &= ~(0xF << 24);
+    GPIOA->CRL |=  (0xB << 24);
 
-    // PA4 NSS input floating
-    GPIOA->CRL &= ~(0xF << (4*4));
-    GPIOA->CRL |=  (0x4 << (4*4));
+    // PA4 -> NSS input floating
+    GPIOA->CRL &= ~(0xF << 16);
+    GPIOA->CRL |=  (0x4 << 16);
 }
 
-void SPI1_Init(void) {
-    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN; // SPI1 clock enable
+void SPI1_Init(void)
+{
+    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
 
     SPI1->CR1 = 0;
-    SPI1->CR1 |= SPI_CR1_SPE;  // SPI enable
-    SPI1->CR1 &= ~SPI_CR1_MSTR; // Slave mode
-    SPI1->CR1 &= ~SPI_CR1_CPOL;
-    SPI1->CR1 &= ~SPI_CR1_CPHA;
-    SPI1->CR1 &= ~SPI_CR1_LSBFIRST;
-    SPI1->CR1 &= ~SPI_CR1_SSI; // Hardware NSS
-    SPI1->CR1 &= ~SPI_CR1_BR;  // SCLK not used in slave
+
+    SPI1->CR1 &= ~(SPI_CR1_MSTR);  // Slave
+    SPI1->CR1 &= ~(SPI_CR1_CPOL);
+    SPI1->CR1 &= ~(SPI_CR1_CPHA);
+    SPI1->CR1 &= ~(SPI_CR1_DFF);   // 8-bit
+    SPI1->CR1 &= ~(SPI_CR1_SSM);   // Hardware NSS
+
+    SPI1->CR1 |= SPI_CR1_SPE;      // Enable SPI
 }
 
-uint8_t SPI1_Receive(void) {
-    while(!(SPI1->SR & SPI_SR_RXNE));
-    return SPI1->DR;
+void LED_Init(void)
+{
+    RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+
+    GPIOC->CRH &= ~(0xF << 20);
+    GPIOC->CRH |=  (0x2 << 20);  // PC13 output
+    GPIOC->ODR |= (1 << 13);      // LED off
 }
 
-int main(void) {
+void LED_Toggle(void)
+{
+    GPIOC->ODR ^= (1 << 13);
+}
+
+int main(void)
+{
+    uint8_t i;
+
+    LED_Init();
     SPI1_GPIO_Init();
     SPI1_Init();
 
-    while(1) {
-        // veri geldi mi kontrol et
-        if(SPI1->SR & SPI_SR_RXNE) {
-            uint8_t data = SPI1_Receive();
-            if(rxIndex < BUFFER_SIZE) {
-                rxBuffer[rxIndex++] = data;
-            }
+    while(1)
+    {
+        // 1️⃣ Length byte bekle
+        while(!(SPI1->SR & SPI_SR_RXNE));
+        dataLength = SPI1->DR;
+
+        if(dataLength > MAX_LEN)
+            dataLength = MAX_LEN;
+
+        // 2️⃣ String byte'larını al
+        for(i = 0; i < dataLength; i++)
+        {
+            while(!(SPI1->SR & SPI_SR_RXNE));
+            rxBuffer[i] = SPI1->DR;
         }
+
+        // Null terminate (string güvenliği)
+        rxBuffer[dataLength] = '\0';
+
+        // 3️⃣ LED toggle: her master verisi geldiğinde durumu değişir
+        LED_Toggle();
+
+        // rxBuffer artık gelen stringi tutuyor
+        // Eğer terminal veya debug ile görmek istersen breakpoint koyabilirsin
     }
 }
