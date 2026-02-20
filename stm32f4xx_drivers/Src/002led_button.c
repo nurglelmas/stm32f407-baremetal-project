@@ -37,6 +37,7 @@ int main(void)
 
 	GPIO_PeriClockControl(GPIOA,ENABLE);
 	GPIO_Init(&GPIOBtn);
+
 	while(1)
 	{
 		if(GPIO_ReadFromInputPin(GPIOA, GPIO_PIN_NO_0) == BTN_PRESSED)
