@@ -19,7 +19,7 @@ Each project includes **demo GIFs or videos** for easy visualization of the func
 
 ## Button Interrupt Demo
 
-![Button Interrupt Demo](media/led_button/led_button.gif)
+![Button Interrupt Demo](media/button_interrupt/button_interrupt.gif)
 
 ---
 
