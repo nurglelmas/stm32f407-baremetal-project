@@ -1,15 +1,27 @@
-# STM32CubeIDE / build outputs
+# ---- STM32CubeIDE / build outputs ----
 Debug/
 Release/
 *.launch
-
-# Build artifacts
 build/
+
+# ---- Compiled binaries / artifacts ----
 *.o
+*.d
 *.elf
 *.map
+*.bin
+*.hex
+*.list
+*.su
 
-# MacOS system files
+# ---- Eclipse / CDT metadata that shouldn't be shared ----
+.metadata/
+
+# ---- OS junk ----
 .DS_Store
+Thumbs.db
+desktop.ini
 
-
+# ---- Editor / IDE ----
+.vscode/
+*.swp
