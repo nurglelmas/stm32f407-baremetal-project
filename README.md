@@ -1,5 +1,6 @@
 # STM32F407 Bare-Metal Projects
 
+[![Build Check](https://github.com/nurglelmas/stm32f407-baremetal-project/actions/workflows/build.yml/badge.svg)](https://github.com/nurglelmas/stm32f407-baremetal-project/actions/workflows/build.yml)
 ![Language](https://img.shields.io/badge/language-C-blue.svg)
 ![Platform](https://img.shields.io/badge/MCU-STM32F407%20%7C%20STM32F103-orange.svg)
 ![Level](https://img.shields.io/badge/level-register--level%20%2F%20bare--metal-critical.svg)
@@ -187,6 +188,15 @@ onboard LED on each message.
    at whichever folder under `projects/` you want to import.
 4. Build and flash to an STM32F407 (projects 01–04) or an STM32F103C8T6
    (project 05) over ST-Link.
+
+## Continuous Integration
+
+Every push and pull request triggers a [GitHub Actions build check](.github/workflows/build.yml)
+that installs the ARM GCC toolchain and compiles every source file in
+projects 01–04 against the target's CPU/FPU flags, catching syntax, type,
+and header errors independently of any local IDE setup. Project 05 (HAL-based)
+is not yet covered — see its [README](projects/05-spi-slave-f103/README.md)
+for why.
 
 ## Documentation
 

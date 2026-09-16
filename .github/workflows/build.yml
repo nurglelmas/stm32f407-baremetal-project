@@ -1,0 +1,64 @@
+name: Build Check
+
+# Runs on every push and pull request, and can also be triggered manually
+# from the Actions tab.
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  compile-check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 01-peripheral-clock-enable
+            dir: projects/01-peripheral-clock-enable
+            includes: ""
+          - name: 02-hse-clock-measurement
+            dir: projects/02-hse-clock-measurement
+            includes: ""
+          - name: 03-hsi-clock-measurement
+            dir: projects/03-hsi-clock-measurement
+            includes: ""
+          - name: 04-gpio-spi-drivers
+            dir: projects/04-gpio-spi-drivers
+            includes: "-Idrivers/Inc"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install ARM GCC toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi
+
+      - name: Verify toolchain
+        run: arm-none-eabi-gcc --version
+
+      # This is a *compile-only* sanity check, not a full link/flash build.
+      # STM32CubeIDE projects normally have exactly one active main() at a
+      # time (the rest excluded from the build in the .cproject), so rather
+      # than reproducing that exclusion logic here, every .c file is
+      # compiled independently with `-c` to catch syntax/type/header errors
+      # across all examples and drivers at once.
+      - name: Compile every source file (${{ matrix.name }})
+        working-directory: ${{ matrix.dir }}
+        run: |
+          set -e
+          FLAGS="-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -std=gnu11 -Wall -Wextra -c ${{ matrix.includes }}"
+          FILES=$(find . -name "*.c")
+          echo "Compiling:"
+          echo "$FILES"
+          for f in $FILES; do
+            arm-none-eabi-gcc $FLAGS "$f" -o /tmp/check.o
+          done
+          echo "All source files in ${{ matrix.name }} compiled successfully."
+
+  # Project 05 uses ST's HAL/CMSIS (see its README for why) and is not
+  # covered by this compile check yet.
